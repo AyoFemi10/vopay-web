@@ -1,10 +1,16 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://vopay-api-7f4903ec07cd.herokuapp.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!API_URL && process.env.NODE_ENV === 'production') {
+  throw new Error('NEXT_PUBLIC_API_URL is required in production. Set it in Heroku and redeploy the web app.');
+}
+
+const baseURL = API_URL || 'http://localhost:3001/api';
 
 export const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

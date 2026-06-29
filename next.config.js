@@ -3,9 +3,7 @@ const nextConfig = {
   images: {
     domains: ['api.dicebear.com', 'avatars.githubusercontent.com'],
   },
-  experimental: {
-    serverComponentsExternalPackages: [],
-  },
+  serverExternalPackages: [],
 };
 
 module.exports = nextConfig;
