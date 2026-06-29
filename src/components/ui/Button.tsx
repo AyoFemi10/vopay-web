@@ -1,8 +1,8 @@
-import { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes, ComponentPropsWithoutRef } from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends Omit<ComponentPropsWithoutRef<typeof motion.button>, 'onDrag' | 'onDragStart' | 'onDragEnd'> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'success' | 'danger';
   size?: 'sm' | 'md' | 'lg';
 }

@@ -1,7 +1,7 @@
 // src/stores/authStore.ts
 import create from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { UserPublic } from '@vopay/shared';
+import type { UserPublic } from '@/types/shared';
 
 type AuthState = {
   user: UserPublic | null;
@@ -21,7 +21,7 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         try {
           // We'll call API elsewhere; just clear state here
-          const { accessToken } = get();
+          void get();
         } finally {
           set({ user: null, isLoading: false });
         }

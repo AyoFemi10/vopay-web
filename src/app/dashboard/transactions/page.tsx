@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
-import { TransactionData } from '@vopay/shared';
+import { TransactionData } from '@/types/shared';
 import {
   ArrowUpRight,
   ArrowDownRight,

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
-import { WalletData, TransactionData } from '@vopay/shared';
+import { WalletData, TransactionData } from '@/types/shared';
 import {
   ArrowUpRight,
   ArrowDownRight,

@@ -291,31 +291,34 @@ export default function SettingsPage() {
                   <div key={group}>
                     <p className="text-xs font-semibold uppercase tracking-wider text-text-muted mb-3">{group} Notifications</p>
                     <div className="space-y-3">
-                      {items.map(({ key, label, desc }) => (
-                        <div key={key} className="flex items-center justify-between p-4 rounded-xl bg-bg-secondary border border-bg-border">
-                          <div>
-                            <p className="text-sm font-medium text-white">{label}</p>
-                            <p className="text-xs text-text-muted mt-0.5">{desc}</p>
-                          </div>
-                          <button
-                            id={`toggle-${key}`}
-                            onClick={() => setNotifs((prev) => ({ ...prev, [key]: !prev[key as keyof typeof notifs] }))}
-                            className={cn(
-                              'w-12 h-6 rounded-full relative transition-colors duration-200',
-                              notifs[key as keyof typeof notifs] ? 'bg-accent' : 'bg-bg-hover'
-                            )}
-                            aria-checked={notifs[key as keyof typeof notifs]}
-                            role="switch"
-                          >
-                            <span
+                      {items.map(({ key, label, desc }) => {
+                        const notificationKey = key as keyof typeof notifs;
+                        return (
+                          <div key={String(key)} className="flex items-center justify-between p-4 rounded-xl bg-bg-secondary border border-bg-border">
+                            <div>
+                              <p className="text-sm font-medium text-white">{label}</p>
+                              <p className="text-xs text-text-muted mt-0.5">{desc}</p>
+                            </div>
+                            <button
+                              id={`toggle-${String(key)}`}
+                              onClick={() => setNotifs((prev) => ({ ...prev, [notificationKey]: !prev[notificationKey] }))}
                               className={cn(
-                                'absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200',
-                                notifs[key as keyof typeof notifs] ? 'left-7' : 'left-1'
+                                'w-12 h-6 rounded-full relative transition-colors duration-200',
+                                notifs[notificationKey] ? 'bg-accent' : 'bg-bg-hover'
                               )}
-                            />
-                          </button>
-                        </div>
-                      ))}
+                              aria-checked={notifs[notificationKey]}
+                              role="switch"
+                            >
+                              <span
+                                className={cn(
+                                  'absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200',
+                                  notifs[notificationKey] ? 'left-7' : 'left-1'
+                                )}
+                              />
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

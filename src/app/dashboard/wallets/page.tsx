@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
-import { WalletData } from '@vopay/shared';
+import { WalletData } from '@/types/shared';
 import {
   Wallet,
   Plus,

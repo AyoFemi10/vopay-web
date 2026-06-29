@@ -1,0 +1,19 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/about/page": "/about",
+  "/contact/page": "/contact",
+  "/page": "/",
+  "/developers/page": "/developers",
+  "/pricing/page": "/pricing",
+  "/product/page": "/product",
+  "/auth/login/page": "/auth/login",
+  "/auth/reset-password/page": "/auth/reset-password",
+  "/auth/forgot-password/page": "/auth/forgot-password",
+  "/auth/signup/page": "/auth/signup",
+  "/auth/verify/page": "/auth/verify",
+  "/dashboard/page": "/dashboard",
+  "/dashboard/transactions/page": "/dashboard/transactions",
+  "/dashboard/transfers/page": "/dashboard/transfers",
+  "/dashboard/settings/page": "/dashboard/settings",
+  "/dashboard/wallets/page": "/dashboard/wallets"
+}
