@@ -1,13 +1,12 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const normalizeApiUrl = (url: string) => {
+  const trimmed = url.replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
 
-if (!API_URL && process.env.NODE_ENV === 'production') {
-  throw new Error('NEXT_PUBLIC_API_URL is required in production. Set it in Heroku and redeploy the web app.');
-}
-
-const baseURL = API_URL || 'https://vopay-api-7f4903ec07cd.herokuapp.com';
+const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL || 'https://vopay-api-7f4903ec07cd.herokuapp.com');
 
 export const apiClient = axios.create({
   baseURL,
@@ -41,8 +40,8 @@ apiClient.interceptors.response.use(
 
       try {
         // Attempt to refresh
-        const { data } = await axios.post(
-          `${API_URL}/auth/refresh`,
+        const { data } = await apiClient.post(
+          '/auth/refresh',
           {},
           { withCredentials: true }
         );
