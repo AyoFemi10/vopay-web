@@ -6,7 +6,7 @@ const normalizeApiUrl = (url: string) => {
   return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
 };
 
-const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL || 'https://vopay-api-7f4903ec07cd.herokuapp.com');
+const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL || 'https://vopay-api-7f4903ec07cd.herokuapp.com/api');
 
 export const apiClient = axios.create({
   baseURL: API_URL,
