@@ -1,0 +1,9 @@
+node_modules
+.next
+/out
+.env
+.env.*
+*.log
+.vscode/
+.DS_Store
+coverage/
