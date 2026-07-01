@@ -1,9 +1,27 @@
 export type CurrencyCode = 'NGN' | 'USD' | 'GBP' | 'EUR' | 'KES' | 'GHS' | 'ZAR';
 export type UserRole = 'USER' | 'BUSINESS' | 'ADMIN';
 export type KycStatus = 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+export type AdminRole =
+  | 'SUPPORT_AGENT'
+  | 'COMPLIANCE_OFFICER'
+  | 'FINANCE_TEAM'
+  | 'ADMINISTRATOR'
+  | 'SUPER_ADMINISTRATOR';
 export type TransactionType = 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER' | 'FEE' | 'REFUND' | 'EXCHANGE';
 export type TransactionStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REVERSED' | 'CANCELLED';
 export type PaymentProviderType = 'FLUTTERWAVE' | 'PAYSTACK' | 'INTERNAL';
+export type ProfileType = 'PERSONAL' | 'BUSINESS' | 'DEVELOPER';
+
+export interface Profile {
+  id: string;
+  type: ProfileType;
+  displayName: string;
+  businessName?: string | null;
+  vpxAccountNumber: string;
+  username?: string | null;
+  isDefault: boolean;
+  isActive: boolean;
+}
 
 export interface UserPublic {
   id: string;
@@ -17,6 +35,11 @@ export interface UserPublic {
   avatarUrl: string | null;
   country: string | null;
   createdAt: string;
+  // Extended profile fields
+  username?: string | null;
+  vpxAccountNumber?: string | null;
+  kycTier?: number;
+  adminRole?: AdminRole | null;
 }
 
 export interface WalletData {
