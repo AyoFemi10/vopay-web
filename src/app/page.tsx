@@ -82,7 +82,7 @@ export default function LandingPage() {
   return (
     <>
       <Navbar />
-      <main className="overflow-x-hidden bg-black">
+      <main className="bg-black">
 
         {/* ══════════════════════════════════════════════════════
             HERO
