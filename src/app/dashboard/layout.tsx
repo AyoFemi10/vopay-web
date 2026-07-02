@@ -10,7 +10,7 @@ import { useProfileStore } from '@/stores/profileStore';
 import {
   Wallet, LayoutDashboard, ArrowLeftRight, CreditCard, Settings,
   LogOut, Bell, TrendingUp, ChevronDown, User, Building2, Code2,
-  ReceiptText, FileText, Search,
+  ReceiptText, FileText, Search, MessageSquare, ShieldAlert, CalendarClock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,6 +25,9 @@ const navItems = [
   { name: 'Cards',        href: '/dashboard/cards',        icon: CreditCard },
   { name: 'Invoices',     href: '/dashboard/invoices',     icon: ReceiptText },
   { name: 'Payments',     href: '/dashboard/payment-requests', icon: FileText },
+  { name: 'Scheduled',    href: '/dashboard/scheduled-payments', icon: CalendarClock },
+  { name: 'Support',      href: '/dashboard/support',      icon: MessageSquare },
+  { name: 'Disputes',     href: '/dashboard/disputes',     icon: ShieldAlert },
   { name: 'Settings',     href: '/dashboard/settings',     icon: Settings },
 ];
 

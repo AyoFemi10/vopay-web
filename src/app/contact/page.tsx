@@ -34,7 +34,7 @@ export default function ContactPage() {
                         </div>
                         <div>
                            <h3 className="font-semibold text-lg mb-1">Email Us</h3>
-                           <p className="text-text-secondary text-sm">sales@vopayx.com</p>
+                           <p className="text-text-secondary text-sm">inbox@vopayx.qzz.io</p>
                         </div>
                      </div>
                      <div className="flex items-start gap-4">
@@ -43,7 +43,7 @@ export default function ContactPage() {
                         </div>
                         <div>
                            <h3 className="font-semibold text-lg mb-1">Support</h3>
-                           <p className="text-text-secondary text-sm">support@vopayx.com</p>
+                           <p className="text-text-secondary text-sm">support@vopayx.qzz.io</p>
                         </div>
                      </div>
                       <div className="flex items-start gap-4">

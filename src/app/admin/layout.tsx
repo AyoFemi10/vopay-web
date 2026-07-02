@@ -18,6 +18,13 @@ import {
   Lock,
   CheckCircle,
   XCircle,
+  BarChart3,
+  Landmark,
+  ArrowRightLeft,
+  GitCompareArrows,
+  MessageSquare,
+  ShieldAlert,
+  Flag,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -44,11 +51,18 @@ export const useAdminMfa = () => useContext(AdminMfaContext);
 // ─── Nav items ────────────────────────────────────────────────────────────────
 
 const navItems = [
-  { name: 'Users',       href: '/admin/users',        icon: Users },
-  { name: 'KYC Queue',   href: '/admin/kyc',          icon: FileCheck },
-  { name: 'Risk Events', href: '/admin/risk-events',  icon: AlertTriangle },
-  { name: 'Transactions',href: '/admin/transactions', icon: ArrowLeftRight },
-  { name: 'Audit Logs',  href: '/admin/audit-logs',   icon: ScrollText },
+  { name: 'Users',          href: '/admin/users',           icon: Users },
+  { name: 'KYC Queue',      href: '/admin/kyc',             icon: FileCheck },
+  { name: 'Risk Events',    href: '/admin/risk-events',     icon: AlertTriangle },
+  { name: 'Transactions',   href: '/admin/transactions',    icon: ArrowLeftRight },
+  { name: 'Audit Logs',     href: '/admin/audit-logs',      icon: ScrollText },
+  { name: 'Analytics',      href: '/admin/analytics',       icon: BarChart3 },
+  { name: 'Treasury',       href: '/admin/treasury',        icon: Landmark },
+  { name: 'Settlements',    href: '/admin/settlements',     icon: ArrowRightLeft },
+  { name: 'Reconciliation', href: '/admin/reconciliation',  icon: GitCompareArrows },
+  { name: 'Support',        href: '/admin/support',          icon: MessageSquare },
+  { name: 'Disputes',       href: '/admin/disputes',         icon: ShieldAlert },
+  { name: 'Feature Flags',  href: '/admin/feature-flags',    icon: Flag },
 ];
 
 // ─── TOTP Modal ───────────────────────────────────────────────────────────────
