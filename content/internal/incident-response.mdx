@@ -1,0 +1,121 @@
+---
+title: Incident Response
+description: VOPayX incident classification, response procedures, and escalation protocols for engineering and operations teams.
+section: internal
+order: 2
+lastUpdated: "2025-07-01"
+---
+
+## Incident Severity Levels
+
+| Severity | Definition | Response target | Examples |
+|----------|-----------|----------------|---------|
+| **P0 — Critical** | Complete service outage or data breach | 15 minutes | API down, DB unreachable, security breach |
+| **P1 — High** | Major feature unavailable, significant user impact | 30 minutes | Transfers failing, auth broken, 50%+ error rate |
+| **P2 — Medium** | Partial degradation, minority of users affected | 2 hours | Slow API responses, webhook failures |
+| **P3 — Low** | Minor issue, workaround available | 8 hours | Dashboard display bug, non-critical feature |
+
+---
+
+## Response Procedure
+
+### Phase 1: Detection (0–5 min)
+
+1. Alert received via PagerDuty / Slack #alerts
+2. On-call engineer acknowledges in PagerDuty (prevents escalation)
+3. Initial triage: "Is this real?" — check monitoring dashboard
+4. Create incident channel: `#inc-YYYY-MM-DD-short-description`
+
+### Phase 2: Containment (5–30 min)
+
+1. **Identify scope**: How many users affected? What features?
+2. **Stop the bleeding**: Roll back deployment, feature flag, kill switch, or scale up
+3. **Communicate**: Update Slack #status-updates and status.vopay.com
+4. **Assign roles**:
+   - Incident Commander (IC): Coordinates response
+   - Technical Lead: Investigates root cause
+   - Comms Lead: Manages internal + external updates
+
+### Phase 3: Investigation (Ongoing)
+
+Commands for common checks:
+
+```bash
+# Check API error rate (last 15 min)
+kubectl logs -n production deployment/api --tail=500 | grep ERROR
+
+# Database connection pool
+kubectl exec -it deployment/api -- node -e "require('./dist/lib/prisma').prisma.\$queryRaw\`SELECT 1\`"
+
+# Redis connectivity
+kubectl exec -it deployment/api -- node -e "const {redis} = require('./dist/lib/redis'); redis.ping().then(console.log)"
+
+# Current pod status
+kubectl get pods -n production
+
+# Recent deployments
+kubectl rollout history deployment/api -n production
+```
+
+### Phase 4: Resolution
+
+1. Apply fix (hotfix deploy or rollback)
+2. Verify error rate returns to baseline
+3. Update status page: "Incident resolved"
+4. Notify affected users if required
+
+### Phase 5: Post-Incident Review (PIR)
+
+Must be completed within **3 business days** for P0/P1:
+
+**PIR Document Template:**
+
+```markdown
+## Incident: [Short title]
+**Date:** YYYY-MM-DD
+**Duration:** X hours Y minutes
+**Severity:** P0/P1/P2/P3
+**Impact:** ~N users affected
+
+## Timeline
+- HH:MM — Alert triggered
+- HH:MM — On-call acknowledged
+- HH:MM — Root cause identified
+- HH:MM — Fix deployed
+- HH:MM — Incident resolved
+
+## Root Cause
+[One-sentence summary]
+
+## Contributing Factors
+- ...
+
+## Action Items
+| Action | Owner | Due Date |
+|--------|-------|----------|
+| ... | @name | YYYY-MM-DD |
+```
+
+---
+
+## Communication Templates
+
+### Initial status update (external)
+
+> We are investigating reports of [service name] issues. Our engineering team is working to resolve this as quickly as possible. We will provide updates every 30 minutes.
+
+### Resolution update (external)
+
+> The issue affecting [service name] has been resolved. All services are operating normally. We apologise for any inconvenience. A full post-incident report will be published within 72 hours.
+
+---
+
+## Runbooks
+
+| Issue | Runbook |
+|-------|---------|
+| Database failover | `/runbooks/db-failover.md` |
+| Rollback deployment | `/runbooks/rollback.md` |
+| Scale API pods | `/runbooks/scale-api.md` |
+| Redis failure | `/runbooks/redis-recovery.md` |
+| Certificate expiry | `/runbooks/cert-renewal.md` |

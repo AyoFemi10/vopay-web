@@ -1,0 +1,119 @@
+---
+title: Invoices
+description: Create, send, and track professional invoices directly from your VOPayX business account.
+section: business
+order: 2
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+VOPayX invoices let you bill customers professionally with automatic payment collection and reminders.
+
+## Creating an Invoice
+
+### From the Dashboard
+
+Go to **Dashboard → Invoices → New Invoice** and fill in:
+- Customer name and email
+- Invoice items (description, quantity, unit price)
+- Due date
+- Notes (optional)
+
+### Via the API
+
+```http
+POST /business/invoices
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "customer": {
+    "name": "Kemi Adeleke",
+    "email": "kemi@example.com",
+    "phone": "+2348012345678"
+  },
+  "items": [
+    {
+      "description": "Logo Design",
+      "quantity": 1,
+      "unitPrice": 80000,
+      "currency": "NGN"
+    },
+    {
+      "description": "Brand Guidelines",
+      "quantity": 1,
+      "unitPrice": 50000,
+      "currency": "NGN"
+    }
+  ],
+  "dueDate": "2025-07-30T00:00:00.000Z",
+  "notes": "Thank you for your business!",
+  "currency": "NGN"
+}
+```
+
+## Invoice Lifecycle
+
+```
+DRAFT → SENT → VIEWED → PAID
+              ↘ OVERDUE
+```
+
+| Status | Description |
+|--------|-------------|
+| `DRAFT` | Created but not yet sent |
+| `SENT` | Email sent to customer |
+| `VIEWED` | Customer has opened the invoice |
+| `PAID` | Payment received |
+| `OVERDUE` | Past due date and unpaid |
+| `CANCELLED` | Cancelled by you |
+| `REFUNDED` | Payment was refunded |
+
+## Sending an Invoice
+
+```http
+POST /business/invoices/:id/send
+Authorization: Bearer <token>
+```
+
+This sends the invoice by email with a payment link embedded. You can also send a reminder:
+
+```http
+POST /business/invoices/:id/remind
+```
+
+## Partial Payments
+
+VOPayX supports deposit-first workflows:
+
+```json
+{
+  "allowPartialPayment": true,
+  "minimumDeposit": 50000
+}
+```
+
+## Tax Handling
+
+```json
+{
+  "items": [...],
+  "tax": {
+    "type": "VAT",
+    "rate": 7.5
+  }
+}
+```
+
+VAT is calculated and displayed separately on the invoice PDF.
+
+## Invoice Webhooks
+
+| Event | Trigger |
+|-------|---------|
+| `invoice.sent` | Invoice emailed to customer |
+| `invoice.viewed` | Customer opened invoice |
+| `invoice.paid` | Full payment received |
+| `invoice.overdue` | Due date passed without payment |
+| `invoice.partially_paid` | Partial payment received |

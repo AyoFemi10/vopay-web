@@ -1,0 +1,124 @@
+---
+title: Testing Environment
+description: Use the VOPayX sandbox to test your integration safely without real money.
+section: developer
+order: 7
+lastUpdated: "2025-07-01"
+---
+
+## Sandbox Overview
+
+The VOPayX sandbox is a full-featured testing environment that mirrors production but uses simulated funds and bank responses.
+
+| | Sandbox | Production |
+|-|---------|------------|
+| Base URL | `https://sandbox.api.vopay.com/v1` | `https://api.vopay.com/v1` |
+| API Key prefix | `vopay_test_sk_` | `vopay_live_sk_` |
+| Real money | ❌ No | ✅ Yes |
+| Bank APIs | Simulated | Live |
+
+## Setting Up a Sandbox Account
+
+1. Register at [app.vopay.com](https://app.vopay.com) 
+2. Navigate to **Settings → Developer → Environment**
+3. Switch to **Sandbox**
+4. Generate a test API key
+
+## Test Cards and Accounts
+
+### Test Bank Accounts
+
+| Bank | Account Number | Name | Result |
+|------|---------------|------|--------|
+| Any | `0000000001` | Test Success | Transfer succeeds |
+| Any | `0000000002` | Test Fail | Transfer fails |
+| Any | `0000000003` | Test Pending | Stays pending |
+
+### Test Wallet Funding
+
+Fund your sandbox wallet using the test deposit endpoint:
+
+```http
+POST /sandbox/fund
+Authorization: Bearer vopay_test_sk_...
+Content-Type: application/json
+
+{
+  "amount": 1000000,
+  "currency": "NGN"
+}
+```
+
+## Simulating Webhook Events
+
+Trigger webhook events without real transactions:
+
+```http
+POST /sandbox/trigger-event
+Authorization: Bearer vopay_test_sk_...
+Content-Type: application/json
+
+{
+  "event": "transfer.completed",
+  "data": {
+    "transferId": "txn_test_01",
+    "amount": 50000,
+    "currency": "NGN"
+  }
+}
+```
+
+## Test KYC Flow
+
+Use these test document numbers to simulate KYC outcomes:
+
+| Document Number | Outcome |
+|----------------|---------|
+| `TEST_APPROVE_001` | KYC approved immediately |
+| `TEST_REJECT_001` | KYC rejected |
+| `TEST_PENDING_001` | KYC stays in review |
+
+<Callout type="info" title="Sandbox resets">
+Sandbox data is **reset every 30 days**. Export any test data you need to keep before the reset.
+</Callout>
+
+## Common Test Scenarios
+
+### Test a Successful Transfer
+
+```typescript
+const client = new VoPayClient({
+  apiKey: 'vopay_test_sk_...',
+  environment: 'sandbox',
+});
+
+const transfer = await client.transfers.create({
+  amount: 10000,
+  currency: 'NGN',
+  recipient: {
+    accountNumber: '0000000001', // Always succeeds
+    bankCode: '058',
+    name: 'Test Success',
+  },
+  reference: `test-${Date.now()}`,
+});
+
+console.log(transfer.status); // 'COMPLETED'
+```
+
+### Test a Failed Transfer
+
+```typescript
+const transfer = await client.transfers.create({
+  amount: 10000,
+  currency: 'NGN',
+  recipient: {
+    accountNumber: '0000000002', // Always fails
+    bankCode: '058',
+    name: 'Test Fail',
+  },
+  reference: `test-fail-${Date.now()}`,
+});
+
+console.log(transfer.status); // 'FAILED'
+```

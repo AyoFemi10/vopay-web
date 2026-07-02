@@ -1,0 +1,216 @@
+---
+title: API Reference
+description: Complete reference for all VOPayX REST API endpoints, organised by resource group.
+section: developer
+order: 9
+lastUpdated: "2025-07-01"
+---
+
+## Base URL
+
+```
+https://api.vopay.com/v1
+```
+
+All requests must use HTTPS. HTTP requests are rejected.
+
+## Authentication
+
+All protected endpoints require:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Or for server-to-server requests:
+
+```http
+X-API-Key: <api_key>
+```
+
+---
+
+## Auth Endpoints
+
+<ApiEndpoint
+  method="POST"
+  path="/auth/login"
+  description="Authenticate with email and password. Returns access and refresh tokens."
+  auth={false}
+  params={[
+    { name: "email", type: "string", required: true, description: "User email address" },
+    { name: "password", type: "string", required: true, description: "User password" }
+  ]}
+  requestExample={`{
+  "email": "user@example.com",
+  "password": "your-password"
+}`}
+  responseExample={`{
+  "success": true,
+  "data": {
+    "accessToken": "eyJ...",
+    "refreshToken": "dGhp...",
+    "expiresIn": 3600
+  }
+}`}
+/>
+
+<ApiEndpoint
+  method="POST"
+  path="/auth/refresh"
+  description="Refresh an expired access token using a valid refresh token."
+  auth={false}
+  params={[
+    { name: "refreshToken", type: "string", required: true, description: "Valid refresh token from login" }
+  ]}
+/>
+
+<ApiEndpoint
+  method="POST"
+  path="/auth/logout"
+  description="Invalidate the current session and revoke the refresh token."
+  auth={true}
+/>
+
+---
+
+## Wallet Endpoints
+
+<ApiEndpoint
+  method="GET"
+  path="/wallets/balance"
+  description="Get the authenticated user's wallet balance for all currencies."
+  auth={true}
+  responseExample={`{
+  "success": true,
+  "data": {
+    "NGN": { "available": 1000000, "pending": 50000 },
+    "USD": { "available": 0, "pending": 0 }
+  }
+}`}
+/>
+
+<ApiEndpoint
+  method="GET"
+  path="/wallets/transactions"
+  description="List wallet transactions with optional filters."
+  auth={true}
+  params={[
+    { name: "page", type: "number", required: false, description: "Page number (default: 1)" },
+    { name: "limit", type: "number", required: false, description: "Results per page (default: 20, max: 100)" },
+    { name: "type", type: "string", required: false, description: "Filter by type: CREDIT, DEBIT" },
+    { name: "from", type: "string", required: false, description: "Start date ISO 8601" },
+    { name: "to", type: "string", required: false, description: "End date ISO 8601" }
+  ]}
+/>
+
+---
+
+## Transfer Endpoints
+
+<ApiEndpoint
+  method="POST"
+  path="/transfers"
+  description="Initiate a bank transfer or internal VOPayX transfer."
+  auth={true}
+  params={[
+    { name: "amount", type: "number", required: true, description: "Amount in lowest denomination (e.g. kobo for NGN)" },
+    { name: "currency", type: "string", required: true, description: "ISO 4217 currency code (e.g. NGN, USD)" },
+    { name: "reference", type: "string", required: true, description: "Unique reference for this transfer" },
+    { name: "narration", type: "string", required: false, description: "Transfer description (shown on recipient statement)" },
+    { name: "recipient.accountNumber", type: "string", required: true, description: "Recipient bank account number" },
+    { name: "recipient.bankCode", type: "string", required: true, description: "Recipient bank code" },
+    { name: "recipient.name", type: "string", required: true, description: "Recipient account name" }
+  ]}
+  requestExample={`{
+  "amount": 50000,
+  "currency": "NGN",
+  "reference": "order-123",
+  "narration": "Payment for order",
+  "recipient": {
+    "accountNumber": "0123456789",
+    "bankCode": "058",
+    "name": "John Doe"
+  }
+}`}
+  responseExample={`{
+  "success": true,
+  "data": {
+    "id": "txn_01JXXX",
+    "status": "PENDING",
+    "amount": 50000,
+    "currency": "NGN",
+    "fee": 1050,
+    "reference": "order-123"
+  }
+}`}
+/>
+
+<ApiEndpoint
+  method="GET"
+  path="/transfers/:id"
+  description="Get the status and details of a specific transfer."
+  auth={true}
+/>
+
+---
+
+## Business Endpoints
+
+<ApiEndpoint
+  method="POST"
+  path="/business/payment-links"
+  description="Create a shareable payment link."
+  auth={true}
+  params={[
+    { name: "amount", type: "number", required: false, description: "Fixed amount (leave empty for variable)" },
+    { name: "currency", type: "string", required: true, description: "Currency code" },
+    { name: "title", type: "string", required: true, description: "Payment link title" },
+    { name: "description", type: "string", required: false, description: "Payment description" },
+    { name: "expiresAt", type: "string", required: false, description: "ISO 8601 expiry date" }
+  ]}
+/>
+
+<ApiEndpoint
+  method="POST"
+  path="/business/invoices"
+  description="Create and send an invoice to a customer."
+  auth={true}
+/>
+
+<ApiEndpoint
+  method="POST"
+  path="/business/payroll"
+  description="Initiate a payroll disbursement to multiple recipients."
+  auth={true}
+/>
+
+---
+
+## Webhook Endpoints
+
+<ApiEndpoint
+  method="GET"
+  path="/developer/webhooks"
+  description="List all registered webhook endpoints."
+  auth={true}
+/>
+
+<ApiEndpoint
+  method="POST"
+  path="/developer/webhooks"
+  description="Register a new webhook endpoint."
+  auth={true}
+  params={[
+    { name: "url", type: "string", required: true, description: "HTTPS URL to receive events" },
+    { name: "events", type: "string[]", required: true, description: "Array of event types to subscribe to" },
+    { name: "secret", type: "string", required: true, description: "Secret for signature verification" }
+  ]}
+/>
+
+<ApiEndpoint
+  method="DELETE"
+  path="/developer/webhooks/:id"
+  description="Delete a webhook endpoint and stop event delivery."
+  auth={true}
+/>

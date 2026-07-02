@@ -1,0 +1,93 @@
+---
+title: Error Codes
+description: Complete reference of all VOPayX API error codes with causes and recommended actions.
+section: developer
+order: 6
+lastUpdated: "2025-07-01"
+---
+
+## Error Response Format
+
+All errors follow a consistent response structure:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INSUFFICIENT_BALANCE",
+    "message": "Wallet balance is insufficient to complete this transfer.",
+    "details": {
+      "required": 50000,
+      "available": 12500
+    }
+  }
+}
+```
+
+## Authentication Errors (4xx)
+
+| Code | HTTP | Cause | Action |
+|------|------|-------|--------|
+| `UNAUTHORIZED` | 401 | No auth header provided | Add `Authorization: Bearer <token>` |
+| `INVALID_TOKEN` | 401 | Token is malformed | Re-authenticate to get a fresh token |
+| `TOKEN_EXPIRED` | 401 | Access token has expired | Use refresh token to get new access token |
+| `REFRESH_TOKEN_EXPIRED` | 401 | Refresh token has expired | User must log in again |
+| `MFA_REQUIRED` | 403 | 2FA verification needed | Complete MFA step |
+| `PIN_REQUIRED` | 403 | Transaction PIN needed | Verify PIN before proceeding |
+| `INVALID_PIN` | 403 | Incorrect PIN | Re-enter correct PIN |
+| `ACCOUNT_LOCKED` | 403 | Account locked due to failed attempts | Contact support |
+| `FORBIDDEN` | 403 | Insufficient permissions | Check API key scopes |
+
+## Validation Errors (400)
+
+| Code | Cause | Action |
+|------|-------|--------|
+| `VALIDATION_ERROR` | Request body fails schema validation | Check the `details` field for field-level errors |
+| `INVALID_AMOUNT` | Amount is zero, negative, or below minimum | Use a positive integer in lowest denomination |
+| `INVALID_CURRENCY` | Unsupported currency code | Use a supported ISO 4217 code |
+| `INVALID_BANK_CODE` | Bank code not recognised | Use `/banks` to get valid bank codes |
+| `DUPLICATE_REFERENCE` | Reference already used | Use a unique reference per transaction |
+| `INVALID_ACCOUNT_NUMBER` | Account number failed Luhn / bank check | Verify the account number |
+
+## Business Logic Errors (422)
+
+| Code | HTTP | Cause | Action |
+|------|------|-------|--------|
+| `INSUFFICIENT_BALANCE` | 422 | Not enough funds | Top up wallet balance |
+| `DAILY_LIMIT_EXCEEDED` | 422 | Daily transfer limit reached | Wait until midnight or upgrade KYC tier |
+| `SINGLE_LIMIT_EXCEEDED` | 422 | Single transaction above limit | Upgrade KYC tier |
+| `KYC_REQUIRED` | 422 | Action requires higher KYC tier | Complete KYC verification |
+| `ACCOUNT_SUSPENDED` | 422 | Account is suspended | Contact compliance@vopay.com |
+| `RECIPIENT_NOT_FOUND` | 422 | Recipient account not found | Verify account details |
+| `TRANSFER_NOT_FOUND` | 404 | Transfer ID does not exist | Check the transfer ID |
+
+## Rate Limit Errors
+
+| Code | HTTP | Cause | Action |
+|------|------|-------|--------|
+| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests | Wait `Retry-After` seconds |
+
+## Server Errors (5xx)
+
+| Code | HTTP | Cause | Action |
+|------|------|-------|--------|
+| `INTERNAL_ERROR` | 500 | Unexpected server error | Retry after a short delay; contact support if persistent |
+| `SERVICE_UNAVAILABLE` | 503 | Planned maintenance or outage | Check status.vopay.com |
+| `PROVIDER_ERROR` | 502 | Downstream banking provider error | Retry; the transaction may have still processed |
+
+<Callout type="warning" title="Idempotency for 5xx errors">
+For transfer and payout endpoints, always use the `Idempotency-Key` header. If you receive a 5xx response, you can safely retry with the same key without creating a duplicate transaction.
+</Callout>
+
+## Idempotency
+
+Prevent duplicate transactions on retries:
+
+```http
+POST /transfers
+Authorization: Bearer <token>
+Idempotency-Key: order-123-attempt-1
+Content-Type: application/json
+```
+
+The same `Idempotency-Key` within 24 hours returns the cached response without re-processing.

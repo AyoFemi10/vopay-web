@@ -1,0 +1,140 @@
+---
+title: Operations Procedures
+description: Standard operating procedures for daily, weekly, and monthly VOPayX operations tasks.
+section: internal
+order: 3
+lastUpdated: "2025-07-01"
+---
+
+## Daily Operations Checklist
+
+### Morning (08:00 WAT)
+
+- [ ] Check overnight transaction error rate (target: < 0.5%)
+- [ ] Review failed transfers from the previous night
+- [ ] Check balance levels in liquidity pools
+- [ ] Confirm NIP/banking provider status at [nibss.com.ng](https://nibss.com.ng)
+- [ ] Review any open P0/P1 incidents from overnight
+
+### Midday (12:00 WAT)
+
+- [ ] Transaction volume check vs. daily average
+- [ ] Pending KYC queue (target: < 50 items)
+- [ ] Open support tickets (target: < 24-hour-old tickets cleared)
+- [ ] Webhook delivery rate (target: > 99%)
+
+### End of Day (18:00 WAT)
+
+- [ ] Daily transfer reconciliation (initiated vs completed)
+- [ ] Failed transfer refund confirmation
+- [ ] Fraud flag review
+- [ ] Metrics snapshot for daily report
+
+---
+
+## Weekly Procedures
+
+### Monday
+
+- Liquidity pool rebalancing review
+- Weekly ops meeting (09:00 WAT, Slack Huddle)
+- Previous week's incident review
+
+### Wednesday
+
+- Provider (Paystack/Flutterwave) performance review
+- Rate limit review for high-usage API customers
+- KYC review queue (weekly audit)
+
+### Friday
+
+- Weekly metrics report to leadership
+- On-call handover briefing
+- Weekend staffing confirmation
+
+---
+
+## Settlement and Reconciliation
+
+### Daily Settlement Process
+
+1. **00:05 WAT** — Automated settlement job runs
+2. Compares internal ledger against provider settlement report
+3. Flags any discrepancies > ₦100
+
+**Manual reconciliation steps (if automated fails):**
+
+```bash
+# Run reconciliation script
+cd apps/api && npm run reconcile -- --date=2025-07-01
+
+# Output: reconciliation-2025-07-01.csv
+# Check for MISMATCH rows
+```
+
+### Discrepancy Handling
+
+| Discrepancy | Action |
+|-------------|--------|
+| < ₦1,000 | Log, auto-resolve next cycle |
+| ₦1,000 – ₦100,000 | Finance review within 24 hours |
+| > ₦100,000 | Immediate escalation to Head of Finance |
+
+---
+
+## Provider Management
+
+### Adding Liquidity (Paystack)
+
+1. Log into Paystack dashboard
+2. Navigate to **Balance → Fund Account**
+3. Use the VOPayX Operations account at First Bank
+4. Document in the operations log: amount, time, authoriser
+
+### Switching Payment Providers
+
+In case of provider downtime, switch routing in admin:
+
+1. **Admin → System → Provider Routing**
+2. Toggle primary provider to backup (Flutterwave ↔ Paystack)
+3. Monitor success rate for 15 minutes
+4. Notify engineering if issues persist
+
+---
+
+## End-of-Month Procedures
+
+### Last Business Day
+
+1. Generate monthly transaction report (Admin → Reports → Monthly)
+2. Export to finance for accounting
+3. Check for accounts approaching limits (trigger review)
+4. Archive support tickets older than 90 days
+5. Renew any expiring API keys for internal services
+6. Update operations metrics dashboard
+
+### Regulatory Reporting
+
+| Report | Frequency | Submitted to | Deadline |
+|--------|-----------|-------------|----------|
+| STR (Suspicious Transactions) | As needed | NFIU | 24 hours of detection |
+| CTR (Large Cash) | Monthly | NFIU | 7th of following month |
+| CBN Returns | Monthly | CBN | 15th of following month |
+
+---
+
+## Access and Credential Management
+
+- All admin credentials rotate **every 90 days**
+- Production database access requires a Jira approval ticket
+- New joiners: access provisioned within 2 business days of start
+- Offboarding: all access revoked on last day
+
+---
+
+## On-Call Rotation
+
+- On-call schedule managed in PagerDuty
+- Each engineer is on primary call for **1 week** every rotation
+- Secondary on-call is the previous primary for backup
+- Escalation to engineering lead if no response in 15 minutes

@@ -1,0 +1,103 @@
+---
+title: API Keys
+description: Create and manage API keys for programmatic access to VOPayX from your backend services.
+section: developer
+order: 2
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+API keys allow server-to-server access to VOPayX without using user credentials. They are ideal for backend integrations, scheduled jobs, and webhook verification.
+
+<Callout type="warning" title="Keep keys secret">
+API keys grant full programmatic access to your account. Never expose them in client-side code, version control, or public repositories.
+</Callout>
+
+## Creating an API Key
+
+Navigate to **Dashboard → Developer → API Keys** and click **Create Key**.
+
+Alternatively, create a key via the API:
+
+```http
+POST /developer/keys
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "name": "Production Backend",
+  "scopes": ["transfers:write", "wallets:read", "webhooks:manage"]
+}
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "key_01JXXXXXXXXXXXXXXXX",
+    "name": "Production Backend",
+    "key": "vopay_live_sk_XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "scopes": ["transfers:write", "wallets:read", "webhooks:manage"],
+    "createdAt": "2025-07-01T00:00:00.000Z",
+    "lastUsed": null
+  }
+}
+```
+
+<Callout type="error" title="One-time display">
+The full API key is shown **only once** at creation time. Store it immediately in a secrets manager (e.g. AWS Secrets Manager, HashiCorp Vault).
+</Callout>
+
+## Key Scopes
+
+| Scope | Description |
+|-------|-------------|
+| `wallets:read` | Read wallet balances and transactions |
+| `wallets:write` | Initiate wallet operations |
+| `transfers:read` | Read transfer records |
+| `transfers:write` | Initiate transfers and payouts |
+| `webhooks:manage` | Create, update, and delete webhooks |
+| `invoices:write` | Create and manage invoices |
+| `payroll:write` | Run payroll disbursements |
+| `admin:read` | Read-only admin access |
+
+## Using API Keys
+
+Authenticate with an API key using the `X-API-Key` header:
+
+```http
+GET /wallets/balance
+X-API-Key: vopay_live_sk_XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+Or using Bearer auth format:
+
+```http
+Authorization: Bearer vopay_live_sk_XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+## Key Environments
+
+| Prefix | Environment |
+|--------|-------------|
+| `vopay_live_sk_` | Production |
+| `vopay_test_sk_` | Sandbox / Testing |
+
+## Rotating Keys
+
+When rotating a key, create the new key first, update all services, then revoke the old key to ensure zero downtime.
+
+```http
+DELETE /developer/keys/:keyId
+Authorization: Bearer <access_token>
+```
+
+## Listing Keys
+
+```http
+GET /developer/keys
+Authorization: Bearer <access_token>
+```

@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { name: 'Product',    href: '/product'    },
   { name: 'Pricing',    href: '/pricing'    },
   { name: 'Developers', href: '/developers' },
+  { name: 'Docs',       href: '/docs'       },
   { name: 'About',      href: '/about'      },
 ];
 

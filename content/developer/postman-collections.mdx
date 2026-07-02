@@ -1,0 +1,82 @@
+---
+title: Postman Collections
+description: Download the official VOPayX Postman collection to quickly explore and test the API.
+section: developer
+order: 8
+lastUpdated: "2025-07-01"
+---
+
+## Download the Collection
+
+The official VOPayX Postman collection includes all API endpoints, pre-configured authentication, and example requests and responses.
+
+<Callout type="info" title="Postman required">
+Download [Postman](https://www.postman.com/downloads/) (free) to use these collections.
+</Callout>
+
+## Collections Available
+
+| Collection | Description | Download |
+|------------|-------------|---------|
+| VOPayX Core API | All endpoints: Auth, Wallets, Transfers | [Download JSON](https://api.vopay.com/postman/core.json) |
+| VOPayX Business API | Payment links, invoices, payroll | [Download JSON](https://api.vopay.com/postman/business.json) |
+| VOPayX Webhooks | Webhook management and testing | [Download JSON](https://api.vopay.com/postman/webhooks.json) |
+
+## Importing into Postman
+
+1. Open Postman and click **Import** (top left)
+2. Select **Link** and paste the collection URL, or upload the JSON file
+3. The collection appears in your **Collections** sidebar
+
+## Setting Up Environment Variables
+
+Create a Postman Environment with these variables:
+
+| Variable | Example Value | Description |
+|----------|--------------|-------------|
+| `baseUrl` | `https://sandbox.api.vopay.com/v1` | API base URL |
+| `apiKey` | `vopay_test_sk_...` | Your API key |
+| `accessToken` | *(auto-filled)* | JWT access token |
+| `refreshToken` | *(auto-filled)* | JWT refresh token |
+
+The **Auth → Login** request automatically saves `accessToken` and `refreshToken` to environment variables using a Postman test script:
+
+```javascript
+// Pre-built test script in the Login request
+pm.test("Login successful", () => {
+  const json = pm.response.json();
+  pm.expect(json.success).to.be.true;
+  pm.environment.set("accessToken", json.data.accessToken);
+  pm.environment.set("refreshToken", json.data.refreshToken);
+});
+```
+
+## Running the Collection
+
+To run the entire collection as an automated test suite:
+
+1. Click **...** next to the collection → **Run collection**
+2. Select your environment
+3. Click **Run VOPayX Core API**
+
+### Using Newman (CLI)
+
+Run the collection in CI/CD pipelines with Newman:
+
+```bash
+npm install -g newman
+
+newman run https://api.vopay.com/postman/core.json \
+  --environment vopay-sandbox.json \
+  --reporters cli,junit \
+  --reporter-junit-export results.xml
+```
+
+```yaml
+# GitHub Actions example
+- name: Run API Tests
+  run: |
+    newman run https://api.vopay.com/postman/core.json \
+      --env-var baseUrl=${{ secrets.VOPAY_SANDBOX_URL }} \
+      --env-var apiKey=${{ secrets.VOPAY_TEST_KEY }}
+```

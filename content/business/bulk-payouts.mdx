@@ -1,0 +1,109 @@
+---
+title: Bulk Payouts
+description: Send payments to multiple recipients in a single API call or CSV upload.
+section: business
+order: 3
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+Bulk payouts let you disburse funds to hundreds of recipients simultaneously — ideal for vendor payments, commissions, and reward distributions.
+
+## Supported Methods
+
+| Method | Best for | Max recipients |
+|--------|----------|----------------|
+| **API** | Programmatic workflows | 1,000 per batch |
+| **CSV Upload** | Manual, one-off disbursements | 5,000 per file |
+| **Dashboard** | Small batches | 100 per batch |
+
+## CSV Format
+
+Download the template from **Dashboard → Bulk Payouts → Download Template**.
+
+Required columns:
+
+```csv
+name,account_number,bank_code,amount,currency,reference,narration
+John Doe,0123456789,058,50000,NGN,ref-001,April commission
+Jane Smith,0987654321,033,75000,NGN,ref-002,April commission
+```
+
+## API Bulk Payout
+
+```http
+POST /business/bulk-payouts
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "April Vendor Payments",
+  "currency": "NGN",
+  "recipients": [
+    {
+      "name": "John Doe",
+      "accountNumber": "0123456789",
+      "bankCode": "058",
+      "amount": 50000,
+      "reference": "ref-001",
+      "narration": "April commission"
+    },
+    {
+      "name": "Jane Smith",
+      "accountNumber": "0987654321",
+      "bankCode": "033",
+      "amount": 75000,
+      "reference": "ref-002",
+      "narration": "April commission"
+    }
+  ],
+  "scheduleAt": "2025-07-31T09:00:00.000Z"
+}
+```
+
+## Batch Status Tracking
+
+```http
+GET /business/bulk-payouts/:batchId
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "batch_01JXXXXXXXXXXXXXXXX",
+    "name": "April Vendor Payments",
+    "status": "PROCESSING",
+    "totalRecipients": 2,
+    "successCount": 1,
+    "failedCount": 0,
+    "pendingCount": 1,
+    "totalAmount": 125000,
+    "currency": "NGN"
+  }
+}
+```
+
+## Handling Failures
+
+Individual recipient failures don't cancel the entire batch. Failed recipients can be retried:
+
+```http
+POST /business/bulk-payouts/:batchId/retry-failed
+```
+
+## Approval Workflow
+
+For batches above your team's approval threshold, a payout is queued for approval:
+
+```
+CREATED → PENDING_APPROVAL → APPROVED → PROCESSING → COMPLETED
+                           ↘ REJECTED
+```
+
+<Callout type="info" title="Set approval thresholds">
+Configure approval rules in **Dashboard → Settings → Approvals**.
+</Callout>

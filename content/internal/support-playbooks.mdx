@@ -1,0 +1,123 @@
+---
+title: Support Playbooks
+description: Standard response playbooks for common customer support scenarios at VOPayX.
+section: internal
+order: 1
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+This playbook provides step-by-step response procedures for the most common support cases. Follow these scripts to ensure consistent, compliant, and efficient customer service.
+
+---
+
+## Playbook 1: Failed Transfer
+
+**Trigger:** Customer reports a transfer was deducted but not received.
+
+### Step 1 — Gather information
+
+Collect from the customer:
+- Transaction reference (required)
+- Date and time of transfer
+- Amount and recipient bank
+
+### Step 2 — Check transaction status
+
+In admin panel: **Admin → Transactions → Search by reference**
+
+| Status found | Action |
+|-------------|--------|
+| `COMPLETED` | Confirm with customer's bank, escalate if confirmed issue |
+| `PENDING` | Inform customer, expected resolution time |
+| `FAILED` | Check refund status → see Step 3 |
+| `PROCESSING` | Monitor for 30 minutes, contact if stuck |
+
+### Step 3 — Failed transaction refund
+
+1. Verify refund status in the admin panel
+2. If refund was not auto-processed, escalate to **#finance-ops** Slack channel
+3. Inform customer: *"Your refund is being processed and will appear in your wallet within 1 hour."*
+
+### Step 4 — Resolution SLA
+
+| Priority | Target resolution |
+|----------|-----------------|
+| Failed + no refund | 2 hours |
+| Failed + refund processing | 4 hours |
+| Pending > 2 hours | 24 hours |
+
+---
+
+## Playbook 2: Account Access Issue
+
+**Trigger:** Customer cannot log in or is locked out.
+
+### Forgot password
+
+1. Direct customer to **Login → Forgot Password**
+2. If no email received after 5 minutes: check spam, verify email in admin
+3. If email address changed: identity verification required before update
+
+### Account locked
+
+1. Check in admin: **Admin → Users → [User ID] → Security**
+2. If locked due to failed attempts: inform customer it auto-unlocks after 30 minutes
+3. If locked by compliance: do NOT disclose reason; escalate to **#compliance** channel
+
+### Phone number lost
+
+1. Collect: Full name, email, last 4 digits of BVN, government ID (uploaded to ticket)
+2. Escalate to **#identity-verification** channel
+3. SLA: 1–2 business days
+
+---
+
+## Playbook 3: Disputed Transaction
+
+**Trigger:** Customer claims a transaction was unauthorised or incorrect.
+
+### Checklist
+
+- [ ] Transaction was made within 60 days
+- [ ] Customer confirms they did not authorise it
+- [ ] Collect: Reference, amount, date
+- [ ] Log dispute in admin: **Admin → Disputes → New**
+
+### Investigation steps
+
+1. Check device and IP address of the transaction
+2. Check if MFA was active at time of transaction
+3. If suspicious: **escalate to fraud team immediately**
+4. Suspend account access if account may be compromised
+
+### Refund decision
+
+| Finding | Outcome |
+|---------|---------|
+| Confirmed fraud | Full refund + account security reset |
+| Customer authorised (forgotten) | Decline dispute, educate customer |
+| Unclear | Escalate to compliance for manual review |
+
+---
+
+## Playbook 4: KYC Rejection Appeal
+
+1. Ask customer what rejection reason they received
+2. Look up submission in admin: **Admin → KYC → [User ID]**
+3. Check rejection reason logged by the verification provider
+4. Provide clear guidance for resubmission
+5. If customer insists rejection is an error, escalate to **#kyc-review** channel
+
+---
+
+## Escalation Matrix
+
+| Issue | First escalation | Second escalation |
+|-------|-----------------|------------------|
+| Financial loss | #finance-ops | Head of Finance |
+| Fraud / security | #fraud-alerts | Head of Security |
+| Compliance | #compliance | Chief Compliance Officer |
+| Technical | #engineering | On-call engineer |
+| KYC | #kyc-review | KYC Lead |

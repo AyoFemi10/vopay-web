@@ -1,0 +1,96 @@
+---
+title: Teams & Permissions
+description: Manage team members and their access levels within your VOPayX business account.
+section: business
+order: 5
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+Business accounts support multiple team members with role-based access control (RBAC). Each role has a defined set of permissions.
+
+## Roles
+
+| Role | Description |
+|------|-------------|
+| **Owner** | Full access; cannot be removed |
+| **Admin** | Full access except billing and ownership transfer |
+| **Finance** | Can initiate and approve transfers; view all transactions |
+| **Operations** | Can initiate transfers; cannot approve high-value transactions |
+| **Viewer** | Read-only access to all data |
+| **Developer** | API key management; no financial operations |
+
+## Permission Matrix
+
+| Action | Owner | Admin | Finance | Operations | Viewer | Developer |
+|--------|-------|-------|---------|------------|--------|-----------|
+| View balance | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Initiate transfer | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Approve transfers | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Manage team | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| API key management | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
+| View reports | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Billing/subscription | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+## Inviting Team Members
+
+### Dashboard
+
+Go to **Dashboard → Settings → Team → Invite Member**.
+
+### API
+
+```http
+POST /business/team/invite
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "email": "colleague@company.com",
+  "role": "FINANCE",
+  "message": "Joining the finance team on VOPayX"
+}
+```
+
+The invitee receives an email to accept the invitation and set up their account.
+
+## Approval Thresholds
+
+Set auto-approval and manual-approval thresholds:
+
+```http
+POST /business/settings/approvals
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "autoApproveBelow": 100000,
+  "requireApprovalAbove": 500000,
+  "requireDualApprovalAbove": 5000000,
+  "currency": "NGN"
+}
+```
+
+| Threshold | Behaviour |
+|-----------|-----------|
+| Below `autoApproveBelow` | Processed immediately |
+| Between thresholds | Requires one Finance/Admin approval |
+| Above `requireDualApprovalAbove` | Requires two separate approvals |
+
+## Removing a Team Member
+
+```http
+DELETE /business/team/:memberId
+Authorization: Bearer <token>
+```
+
+Removing a member immediately revokes their access. Any pending approvals by that member are cancelled and returned to the approval queue.
+
+## Audit Logs
+
+All team actions are logged. View the full audit trail at **Dashboard → Settings → Audit Log** or via API:
+
+```http
+GET /business/audit-log?page=1&limit=50
+```

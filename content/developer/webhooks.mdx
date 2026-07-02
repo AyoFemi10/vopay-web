@@ -1,0 +1,141 @@
+---
+title: Webhooks
+description: Receive real-time event notifications from VOPayX by registering webhook endpoints.
+section: developer
+order: 3
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+Webhooks allow VOPayX to push real-time notifications to your server when events occur — for example, when a transfer completes or a payment is received.
+
+## Registering a Webhook
+
+```http
+POST /developer/webhooks
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "url": "https://your-server.com/webhooks/vopay",
+  "events": ["transfer.completed", "transfer.failed", "payment.received"],
+  "secret": "your-webhook-secret"
+}
+```
+
+## Event Types
+
+| Event | Description |
+|-------|-------------|
+| `transfer.completed` | A transfer or payout has been completed |
+| `transfer.failed` | A transfer or payout has failed |
+| `transfer.pending` | A transfer is pending processing |
+| `payment.received` | An incoming payment was received |
+| `kyc.approved` | KYC verification was approved |
+| `kyc.rejected` | KYC verification was rejected |
+| `invoice.paid` | An invoice has been paid |
+| `invoice.overdue` | An invoice is overdue |
+| `payroll.completed` | A payroll disbursement completed |
+| `dispute.opened` | A dispute was opened on a transaction |
+
+## Webhook Payload
+
+Every webhook delivery has a consistent envelope:
+
+```json
+{
+  "id": "evt_01JXXXXXXXXXXXXXXXX",
+  "event": "transfer.completed",
+  "createdAt": "2025-07-01T12:00:00.000Z",
+  "data": {
+    "transferId": "txn_01JXXXXXXXXXXXXXXXX",
+    "amount": 50000,
+    "currency": "NGN",
+    "status": "COMPLETED",
+    "reference": "your-ref-123"
+  }
+}
+```
+
+## Verifying Signatures
+
+VOPayX signs every webhook payload using HMAC-SHA256. Always verify the signature before processing.
+
+The signature is sent in the `X-VoPay-Signature` header:
+
+```
+X-VoPay-Signature: sha256=<hmac_hex>
+```
+
+### Verification Example
+
+```typescript
+import crypto from 'crypto';
+
+function verifyWebhookSignature(
+  payload: string,
+  signature: string,
+  secret: string
+): boolean {
+  const expected = `sha256=${crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex')}`;
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expected)
+  );
+}
+
+// In your webhook handler
+app.post('/webhooks/vopay', (req, res) => {
+  const sig = req.headers['x-vopay-signature'] as string;
+  const raw = JSON.stringify(req.body);
+  
+  if (!verifyWebhookSignature(raw, sig, process.env.WEBHOOK_SECRET!)) {
+    return res.status(401).json({ error: 'Invalid signature' });
+  }
+  
+  // Process the event
+  const event = req.body;
+  console.log('Event received:', event.event);
+  
+  res.json({ received: true });
+});
+```
+
+```python
+import hmac
+import hashlib
+
+def verify_signature(payload: str, signature: str, secret: str) -> bool:
+    expected = "sha256=" + hmac.new(
+        secret.encode(),
+        payload.encode(),
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(signature, expected)
+```
+
+<Callout type="info" title="Respond quickly">
+Your webhook endpoint must respond with a 2xx status within **10 seconds**. For long-running processing, respond immediately and handle async.
+</Callout>
+
+## Retry Policy
+
+If your endpoint returns a non-2xx response, VOPayX retries with exponential backoff:
+
+| Attempt | Delay |
+|---------|-------|
+| 1 | Immediate |
+| 2 | 1 minute |
+| 3 | 10 minutes |
+| 4 | 1 hour |
+| 5 | 24 hours |
+
+After 5 failed attempts, the webhook delivery is marked as failed.
+
+## Webhook Logs
+
+View delivery attempts and payloads in **Dashboard → Developer → Webhook Logs**.

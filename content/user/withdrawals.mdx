@@ -1,0 +1,109 @@
+---
+title: Withdrawals
+description: How to withdraw funds from your VOPayX wallet to your bank account.
+section: user
+order: 3
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+Withdrawals transfer funds from your VOPayX wallet to an external bank account.
+
+## Making a Withdrawal
+
+### From the Dashboard
+
+1. Go to **Dashboard → Wallet → Withdraw**
+2. Select a saved bank account or enter a new one
+3. Enter the amount
+4. Confirm your transaction PIN
+5. Review and submit
+
+### Via the API
+
+```http
+POST /transfers
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "amount": 50000,
+  "currency": "NGN",
+  "reference": "withdraw-001",
+  "narration": "Withdrawal to Zenith Bank",
+  "recipient": {
+    "accountNumber": "0123456789",
+    "bankCode": "057",
+    "name": "Your Name"
+  }
+}
+```
+
+## Processing Times
+
+| Time | Situation |
+|------|-----------|
+| Instant | Same bank, 24/7 |
+| < 15 minutes | Most Nigerian banks, business hours |
+| Up to 24 hours | Some rural banks or NIP downtime |
+| 1–3 business days | International withdrawals |
+
+<Callout type="info" title="NIP maintenance windows">
+The Nigerian Inter-Bank Settlement System (NIBSS) performs maintenance on Sunday mornings (02:00–06:00 WAT), which may delay some transfers.
+</Callout>
+
+## Saved Bank Accounts
+
+You can save frequently used bank accounts:
+
+```http
+POST /profile/bank-accounts
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "accountNumber": "0123456789",
+  "bankCode": "057",
+  "accountName": "Your Name",
+  "label": "My Zenith Account"
+}
+```
+
+## Account Name Verification
+
+Before withdrawing to a new account, VOPayX verifies the account name with the bank:
+
+```http
+GET /banks/verify?accountNumber=0123456789&bankCode=057
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "accountName": "JOHN OKAFOR",
+    "accountNumber": "0123456789",
+    "bankName": "Zenith Bank"
+  }
+}
+```
+
+## Withdrawal Limits
+
+| Tier | Single withdrawal | Daily withdrawals |
+|------|------------------|------------------|
+| Tier 1 | ₦20,000 | ₦50,000 |
+| Tier 2 | ₦200,000 | ₦500,000 |
+| Tier 3 | ₦2,000,000 | ₦5,000,000 |
+
+## Failed Withdrawals
+
+If a withdrawal fails, the funds are returned to your wallet within **1 hour**. Common causes:
+
+- Incorrect account number
+- Account is dormant or closed
+- Bank system downtime
+- Daily limit exceeded

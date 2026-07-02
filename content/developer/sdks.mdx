@@ -1,0 +1,240 @@
+---
+title: SDKs & Examples
+description: Official SDKs and code examples for integrating VOPayX in JavaScript, TypeScript, Python, PHP, Go, and Java.
+section: developer
+order: 4
+lastUpdated: "2025-07-01"
+---
+
+## JavaScript / TypeScript
+
+### Installation
+
+```bash
+npm install @vopay/sdk
+# or
+yarn add @vopay/sdk
+```
+
+### Initialisation
+
+```typescript
+import { VoPayClient } from '@vopay/sdk';
+
+const client = new VoPayClient({
+  apiKey: process.env.VOPAY_API_KEY!,
+  environment: 'production', // or 'sandbox'
+});
+```
+
+### Initiate a Transfer
+
+```typescript
+const transfer = await client.transfers.create({
+  amount: 50000,        // in kobo (NGN) / lowest denomination
+  currency: 'NGN',
+  recipient: {
+    accountNumber: '0123456789',
+    bankCode: '058',
+    name: 'John Doe',
+  },
+  reference: 'order-123',
+  narration: 'Payment for order #123',
+});
+
+console.log(transfer.id); // txn_01JXXXXXXXXXXXXXXXX
+```
+
+### Get Wallet Balance
+
+```typescript
+const balance = await client.wallets.getBalance();
+console.log(`Available: ${balance.available / 100} NGN`);
+```
+
+---
+
+## Python
+
+### Installation
+
+```bash
+pip install vopay-sdk
+```
+
+### Usage
+
+```python
+from vopay import VoPayClient
+
+client = VoPayClient(
+    api_key=os.environ["VOPAY_API_KEY"],
+    environment="production"
+)
+
+# Initiate transfer
+transfer = client.transfers.create(
+    amount=50000,
+    currency="NGN",
+    recipient={
+        "account_number": "0123456789",
+        "bank_code": "058",
+        "name": "John Doe",
+    },
+    reference="order-123",
+    narration="Payment for order #123",
+)
+
+print(f"Transfer ID: {transfer.id}")
+```
+
+---
+
+## PHP
+
+### Installation
+
+```bash
+composer require vopay/sdk
+```
+
+### Usage
+
+```php
+<?php
+use VoPay\Client;
+
+$client = new Client([
+    'api_key' => getenv('VOPAY_API_KEY'),
+    'environment' => 'production',
+]);
+
+$transfer = $client->transfers->create([
+    'amount'    => 50000,
+    'currency'  => 'NGN',
+    'recipient' => [
+        'account_number' => '0123456789',
+        'bank_code'      => '058',
+        'name'           => 'John Doe',
+    ],
+    'reference'  => 'order-123',
+    'narration'  => 'Payment for order #123',
+]);
+
+echo "Transfer ID: " . $transfer->id;
+```
+
+---
+
+## Go
+
+### Installation
+
+```bash
+go get github.com/vopay/vopay-go
+```
+
+### Usage
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "os"
+
+    vopay "github.com/vopay/vopay-go"
+)
+
+func main() {
+    client := vopay.NewClient(os.Getenv("VOPAY_API_KEY"))
+
+    transfer, err := client.Transfers.Create(context.Background(), &vopay.TransferParams{
+        Amount:    50000,
+        Currency:  "NGN",
+        Reference: "order-123",
+        Recipient: &vopay.Recipient{
+            AccountNumber: "0123456789",
+            BankCode:      "058",
+            Name:          "John Doe",
+        },
+        Narration: "Payment for order #123",
+    })
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Printf("Transfer ID: %s\n", transfer.ID)
+}
+```
+
+---
+
+## Java
+
+### Installation (Maven)
+
+```xml
+<dependency>
+    <groupId>com.vopay</groupId>
+    <artifactId>vopay-java</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+### Usage
+
+```java
+import com.vopay.VoPayClient;
+import com.vopay.model.Transfer;
+import com.vopay.model.TransferParams;
+import com.vopay.model.Recipient;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        VoPayClient client = new VoPayClient(System.getenv("VOPAY_API_KEY"));
+
+        Transfer transfer = client.transfers().create(
+            TransferParams.builder()
+                .amount(50000L)
+                .currency("NGN")
+                .reference("order-123")
+                .narration("Payment for order #123")
+                .recipient(
+                    Recipient.builder()
+                        .accountNumber("0123456789")
+                        .bankCode("058")
+                        .name("John Doe")
+                        .build()
+                )
+                .build()
+        );
+
+        System.out.println("Transfer ID: " + transfer.getId());
+    }
+}
+```
+
+---
+
+## REST (cURL)
+
+No SDK required — use the REST API directly:
+
+```bash
+curl -X POST https://api.vopay.com/v1/transfers \
+  -H "Authorization: Bearer $VOPAY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 50000,
+    "currency": "NGN",
+    "reference": "order-123",
+    "narration": "Payment for order #123",
+    "recipient": {
+      "accountNumber": "0123456789",
+      "bankCode": "058",
+      "name": "John Doe"
+    }
+  }'
+```

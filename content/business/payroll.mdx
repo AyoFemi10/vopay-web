@@ -1,0 +1,114 @@
+---
+title: Payroll
+description: Run recurring employee salary disbursements from your VOPayX business account.
+section: business
+order: 4
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+VOPayX Payroll automates monthly (or custom-cycle) salary disbursements to your employees' bank accounts. Funds are deducted from your business wallet and sent directly.
+
+## Setting Up Payroll
+
+### Step 1: Add Employees
+
+```http
+POST /business/payroll/employees
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Amara Osei",
+  "email": "amara@company.com",
+  "employeeId": "EMP-001",
+  "bankAccount": {
+    "accountNumber": "0123456789",
+    "bankCode": "058",
+    "accountName": "Amara Osei"
+  },
+  "salary": {
+    "amount": 350000,
+    "currency": "NGN"
+  }
+}
+```
+
+### Step 2: Configure Schedule
+
+```http
+POST /business/payroll/schedule
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "frequency": "MONTHLY",
+  "dayOfMonth": 25,
+  "currency": "NGN",
+  "autoRun": true
+}
+```
+
+### Step 3: Fund the Wallet
+
+Ensure your business wallet has sufficient funds before the scheduled run date.
+
+## Running Payroll Manually
+
+```http
+POST /business/payroll/run
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "month": "2025-07",
+  "includeEmployeeIds": ["EMP-001", "EMP-002"],
+  "narration": "July 2025 Salary"
+}
+```
+
+## Payroll Run Status
+
+| Status | Description |
+|--------|-------------|
+| `SCHEDULED` | Run is queued for future execution |
+| `PROCESSING` | Disbursements are being sent |
+| `COMPLETED` | All salaries disbursed |
+| `PARTIAL` | Some succeeded, some failed |
+| `FAILED` | Run failed (e.g., insufficient balance) |
+
+## Adjustments and Bonuses
+
+Add one-time adjustments before running payroll:
+
+```json
+{
+  "employeeId": "EMP-001",
+  "adjustments": [
+    { "type": "BONUS", "amount": 50000, "description": "Q2 performance bonus" },
+    { "type": "DEDUCTION", "amount": 10000, "description": "Advance repayment" }
+  ]
+}
+```
+
+## Payslips
+
+VOPayX automatically generates PDF payslips and emails them to employees after each payroll run. Payslips are also accessible via:
+
+```http
+GET /business/payroll/runs/:runId/payslips/:employeeId
+```
+
+<Callout type="warning" title="Approval required">
+Payroll runs above ₦1,000,000 require approval from an account Admin or Owner before execution.
+</Callout>
+
+## Tax Compliance
+
+VOPayX Payroll calculates PAYE (Pay As You Earn) deductions automatically based on Nigerian tax bands. Monthly payroll reports include:
+
+- Gross salary
+- PAYE deducted
+- Pension contribution
+- Net salary paid

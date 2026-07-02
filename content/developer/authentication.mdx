@@ -1,0 +1,107 @@
+---
+title: Authentication
+description: Learn how to authenticate requests to the VOPayX API using JWT bearer tokens.
+section: developer
+order: 1
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+VOPayX uses **JWT (JSON Web Tokens)** for API authentication. Every request to a protected endpoint must include a valid bearer token in the `Authorization` header.
+
+<Callout type="info" title="Base URL">
+All API requests should be made to: `https://api.vopay.com/v1`
+</Callout>
+
+## Obtaining a Token
+
+Send a `POST` request to `/auth/login` with your credentials.
+
+```http
+POST /auth/login
+Content-Type: application/json
+```
+
+```json
+{
+  "email": "you@example.com",
+  "password": "your-password"
+}
+```
+
+A successful response returns an `accessToken` and a `refreshToken`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4...",
+    "expiresIn": 3600
+  }
+}
+```
+
+## Using the Token
+
+Include the `accessToken` as a Bearer token in every subsequent request:
+
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+## Refreshing the Token
+
+Access tokens expire after **1 hour**. Use the refresh token to get a new access token without requiring the user to log in again.
+
+```http
+POST /auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
+}
+```
+
+<Callout type="warning" title="Refresh token expiry">
+Refresh tokens are valid for **30 days**. After expiry, the user must log in again.
+</Callout>
+
+## Two-Factor Authentication
+
+If a user has 2FA enabled, the login response will include a `requiresMfa: true` flag. Complete MFA with:
+
+```http
+POST /auth/verify-otp
+Content-Type: application/json
+
+{
+  "userId": "usr_01JXXXXXXXXXXXXXXXX",
+  "otp": "123456"
+}
+```
+
+## PIN Authentication
+
+For transaction-sensitive operations, users must verify their 6-digit transaction PIN:
+
+```http
+POST /auth/verify-pin
+Content-Type: application/json
+Authorization: Bearer <access_token>
+
+{
+  "pin": "123456"
+}
+```
+
+## Error Responses
+
+| Status | Code | Description |
+|--------|------|-------------|
+| 401 | `INVALID_CREDENTIALS` | Email or password is incorrect |
+| 401 | `TOKEN_EXPIRED` | The access token has expired |
+| 401 | `INVALID_TOKEN` | The token is malformed or invalid |
+| 403 | `MFA_REQUIRED` | MFA verification is required |
+| 429 | `RATE_LIMIT_EXCEEDED` | Too many authentication attempts |

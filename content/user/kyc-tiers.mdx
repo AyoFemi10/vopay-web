@@ -1,0 +1,74 @@
+---
+title: KYC Tiers
+description: Understand the three identity verification tiers and how they affect your transaction limits.
+section: user
+order: 1
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+VOPayX uses a three-tier KYC (Know Your Customer) system. Higher tiers unlock higher transaction and balance limits. Verification is fast and fully digital.
+
+## Tier Summary
+
+| Feature | Tier 1 (Basic) | Tier 2 (Verified) | Tier 3 (Full) |
+|---------|---------------|------------------|---------------|
+| **Requirement** | Phone + BVN | Tier 1 + Gov ID | Tier 2 + Address proof |
+| **Daily send limit** | ₦50,000 | ₦500,000 | ₦5,000,000 |
+| **Single transaction** | ₦20,000 | ₦200,000 | ₦2,000,000 |
+| **Balance limit** | ₦300,000 | ₦3,000,000 | Unlimited |
+| **International transfers** | ❌ | ❌ | ✅ |
+| **Business features** | ❌ | Limited | Full |
+
+## Tier 1 — Basic
+
+Automatically granted on registration.
+
+**Requirements:**
+- Nigerian phone number (verified via OTP)
+- BVN (Bank Verification Number)
+
+**Verification time:** Instant
+
+## Tier 2 — Verified
+
+**Requirements:**
+- Tier 1 verified
+- One of: National ID, Voter's Card, Passport, Driver's Licence
+
+**Verification time:** Usually within 2 hours, up to 24 hours
+
+**How to upgrade:**
+1. Go to **Dashboard → Settings → Identity Verification**
+2. Select your document type
+3. Upload a clear photo of the front and back
+4. Submit
+
+## Tier 3 — Full
+
+**Requirements:**
+- Tier 2 verified
+- Proof of address (utility bill, bank statement — dated within 3 months)
+- Selfie with document (liveness check)
+
+**Verification time:** 1–3 business days (manual review)
+
+## Verification Status
+
+Your verification status is always visible in **Dashboard → Profile → Verification Status**:
+
+| Status | Meaning |
+|--------|---------|
+| `PENDING` | Under review |
+| `APPROVED` | Verification successful |
+| `REJECTED` | Verification failed — see reason |
+| `REQUIRES_INFO` | More information needed |
+
+<Callout type="info" title="Rejected submissions">
+If your submission is rejected, the rejection reason will be displayed in the app. Common reasons include blurry images, expired documents, or name mismatch with BVN.
+</Callout>
+
+## Business Accounts
+
+Business accounts have a separate KYC process (CAC registration, directors' IDs, etc.). See [Teams & Permissions](/docs/business/teams-permissions) for details.

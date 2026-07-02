@@ -1,0 +1,114 @@
+---
+title: Payment Links
+description: Create shareable payment links to accept payments from customers without writing any code.
+section: business
+order: 1
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+Payment links are pre-built payment pages you can share via any channel — WhatsApp, email, social media — to collect payments from customers instantly.
+
+## Creating a Payment Link
+
+### From the Dashboard
+
+1. Go to **Dashboard → Payment Links → New Link**
+2. Set the amount (or leave blank for variable amounts)
+3. Add a title and optional description
+4. Set an expiry date (optional)
+5. Click **Create Link**
+
+### Via the API
+
+```http
+POST /business/payment-links
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Website Redesign — Deposit",
+  "description": "50% deposit for website redesign project",
+  "amount": 150000,
+  "currency": "NGN",
+  "redirectUrl": "https://yoursite.com/thanks",
+  "expiresAt": "2025-08-01T00:00:00.000Z"
+}
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "lnk_01JXXXXXXXXXXXXXXXX",
+    "url": "https://pay.vopay.com/l/abc123def",
+    "shortUrl": "https://vopay.com/pay/abc123",
+    "amount": 150000,
+    "currency": "NGN",
+    "status": "ACTIVE",
+    "createdAt": "2025-07-01T00:00:00.000Z"
+  }
+}
+```
+
+## Link Types
+
+| Type | Description | Use case |
+|------|-------------|----------|
+| **Fixed amount** | Customer pays a set amount | Deposits, subscriptions |
+| **Variable amount** | Customer enters amount | Donations, tips, flexible services |
+| **One-time** | Expires after first payment | Single invoices |
+| **Recurring** | Stays active for multiple payments | Ongoing products/services |
+
+## Customisation
+
+Add your branding to payment links:
+
+```json
+{
+  "title": "Photography Session",
+  "amount": 75000,
+  "currency": "NGN",
+  "branding": {
+    "logoUrl": "https://yoursite.com/logo.png",
+    "primaryColor": "#2563EB",
+    "businessName": "Ade Photography"
+  }
+}
+```
+
+## Tracking Payments
+
+Payment link activity is available in **Dashboard → Payment Links → [Link Name] → Activity**.
+
+Each payment triggers a `payment.received` webhook event:
+
+```json
+{
+  "event": "payment.received",
+  "data": {
+    "paymentLinkId": "lnk_01JXXXXXXXXXXXXXXXX",
+    "amount": 150000,
+    "currency": "NGN",
+    "payer": {
+      "email": "customer@example.com",
+      "name": "Chidi Okafor"
+    },
+    "reference": "PAY-abc123"
+  }
+}
+```
+
+## Deactivating a Link
+
+```http
+PATCH /business/payment-links/:id
+Content-Type: application/json
+
+{
+  "status": "INACTIVE"
+}
+```

@@ -1,0 +1,125 @@
+---
+title: Currency Conversion
+description: Convert between NGN, USD, GBP, EUR, and other currencies directly in your VOPayX wallet.
+section: user
+order: 4
+lastUpdated: "2025-07-01"
+---
+
+## Overview
+
+VOPayX supports multi-currency wallets and real-time currency conversion. Conversion uses live mid-market rates with a transparent 1.5% FX margin.
+
+## Supported Currencies
+
+| Currency | Code | Wallet | Send | Receive |
+|----------|------|--------|------|---------|
+| Nigerian Naira | NGN | ✅ | ✅ | ✅ |
+| US Dollar | USD | ✅ | ✅ (Tier 3) | ✅ |
+| British Pound | GBP | ✅ | ✅ (Tier 3) | ✅ |
+| Euro | EUR | ✅ | ✅ (Tier 3) | ✅ |
+| Ghanaian Cedi | GHS | ✅ | ✅ | ✅ |
+| Kenyan Shilling | KES | ✅ | ✅ | ✅ |
+
+## Getting Exchange Rates
+
+```http
+GET /fx/rates?from=NGN&to=USD
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "from": "NGN",
+    "to": "USD",
+    "midMarketRate": 1600.50,
+    "rate": 1576.49,
+    "margin": 1.5,
+    "timestamp": "2025-07-01T12:00:00.000Z",
+    "expiresAt": "2025-07-01T12:01:00.000Z"
+  }
+}
+```
+
+<Callout type="warning" title="Rates are live">
+Exchange rates refresh every 60 seconds. Lock in a rate before confirming a conversion.
+</Callout>
+
+## Converting Currency
+
+### From the Dashboard
+
+1. Go to **Dashboard → Wallet → Convert**
+2. Select source and destination currencies
+3. Enter the amount (in either currency)
+4. Review the rate and estimated amount received
+5. Confirm with your transaction PIN
+
+### Via API
+
+```http
+POST /fx/convert
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "from": "NGN",
+  "to": "USD",
+  "amount": 1600000,
+  "quoteId": "quote_01JXXXXXXXXXXXXXXXX"
+}
+```
+
+## Getting a Quote
+
+Lock in a rate for 60 seconds before converting:
+
+```http
+POST /fx/quote
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "from": "NGN",
+  "to": "USD",
+  "amount": 1600000,
+  "amountIn": "from"
+}
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "quoteId": "quote_01JXXXXXXXXXXXXXXXX",
+    "from": "NGN",
+    "to": "USD",
+    "amountIn": 1600000,
+    "amountOut": 1015.62,
+    "rate": 1576.49,
+    "fee": 24000,
+    "expiresAt": "2025-07-01T12:01:00.000Z"
+  }
+}
+```
+
+## Fee Calculation Example
+
+Converting ₦1,600,000 to USD:
+- Mid-market rate: 1,600 NGN/USD
+- VOPayX rate (1.5% margin): 1,576.49 NGN/USD
+- You receive: **$1,015.62**
+- Effective fee: ₦24,000 (1.5% of ₦1,600,000)
+
+## Conversion History
+
+View all past conversions at **Dashboard → Wallet → History → Conversions** or:
+
+```http
+GET /fx/history?page=1&limit=20
+```
