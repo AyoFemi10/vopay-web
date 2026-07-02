@@ -8,7 +8,7 @@ const normalizeApiUrl = (url: string) => {
 
 const API_URL = normalizeApiUrl(
   process.env.NEXT_PUBLIC_API_URL ||
-    'https://vopay-api-7f4903ec07cd.herokuapp.com/api'
+    'https://api.vopayx.qzz.io/api'
 );
 
 export const apiClient = axios.create({
