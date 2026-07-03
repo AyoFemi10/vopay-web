@@ -3,43 +3,46 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAuthStore } from '@/stores/authStore';
 import { apiClient } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { ShieldCheck, ArrowRight, KeyRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Spinner } from '@/components/ui/Spinner';
 
+/**
+ * In-App MFA Verification Page
+ *
+ * Shown after a successful Supabase sign-in when the user has enabled
+ * VOPayX in-app TOTP (separate from Supabase's native MFA). The user
+ * already has a valid session but their profile is marked as requiring
+ * TOTP verification for high-trust actions.
+ *
+ * After verification, a flag is stored in the session so subsequent
+ * requests don't re-challenge within the same session window.
+ */
 export default function TwoFactorPage() {
-  const router = useRouter();
-  const { login } = useAuth();
-  const tempToken = useAuthStore((s) => s.tempToken);
-  const requires2FA = useAuthStore((s) => s.requires2FA);
-  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const router       = useRouter();
+  const { user }     = useAuth();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]     = useState(false);
   const [useBackup, setUseBackup] = useState(false);
-  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [code, setCode]           = useState(['', '', '', '', '', '']);
   const [backupCode, setBackupCode] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Guard: if there's no pending 2FA state, redirect to login
+  // If there's no authenticated user, redirect to login
   useEffect(() => {
-    if (!requires2FA || !tempToken) {
+    if (!user) {
       router.replace('/auth/login');
     }
-  }, [requires2FA, tempToken, router]);
+  }, [user, router]);
 
   const handleDigitChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
-
     const newCode = [...code];
-    newCode[index] = value.slice(-1); // only last char if pasted
+    newCode[index] = value.slice(-1);
     setCode(newCode);
-
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
+    if (value && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
   const handleDigitKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -53,20 +56,16 @@ export default function TwoFactorPage() {
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     if (!pasted) return;
     const newCode = [...code];
-    pasted.split('').forEach((char, i) => {
-      newCode[i] = char;
-    });
+    pasted.split('').forEach((char, i) => { newCode[i] = char; });
     setCode(newCode);
-    // Focus the last filled input or the end
     const lastIndex = Math.min(pasted.length, 5);
     inputRefs.current[lastIndex]?.focus();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tempToken) return;
 
-    const totpCode = useBackup ? backupCode : code.join('');
+    const totpCode = useBackup ? backupCode.trim() : code.join('');
 
     if (!useBackup && totpCode.length !== 6) {
       toast.error('Please enter the 6-digit code');
@@ -79,14 +78,11 @@ export default function TwoFactorPage() {
 
     setLoading(true);
     try {
-      const { data } = await apiClient.post('/auth/2fa/verify', {
-        tempToken,
-        code: totpCode,
-      });
+      const { data } = await apiClient.post('/auth/2fa/verify', { code: totpCode });
 
       if (data.success) {
-        toast.success('Two-factor authentication verified! 🎉');
-        login(data.data.tokens.accessToken, data.data.user, data.data.tokens.expiresIn);
+        toast.success('Two-factor authentication verified!');
+        router.push('/dashboard');
       }
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
@@ -96,12 +92,7 @@ export default function TwoFactorPage() {
     }
   };
 
-  const handleCancel = () => {
-    clearAuth();
-    router.push('/auth/login');
-  };
-
-  if (!requires2FA || !tempToken) return null;
+  if (!user) return null;
 
   return (
     <motion.div
@@ -178,7 +169,7 @@ export default function TwoFactorPage() {
                 id="backup-code"
                 type="text"
                 className="input font-mono tracking-wider"
-                placeholder="xxxxxxxx"
+                placeholder="XXXXXXXX"
                 autoComplete="one-time-code"
                 value={backupCode}
                 onChange={(e) => setBackupCode(e.target.value.trim())}
@@ -191,12 +182,10 @@ export default function TwoFactorPage() {
           )}
         </AnimatePresence>
 
-        <motion.button
+        <button
           type="submit"
           disabled={loading}
-          whileHover={{ scale: loading ? 1 : 1.02 }}
-          whileTap={{ scale: loading ? 1 : 0.98 }}
-          className="btn-primary w-full h-12 gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="btn-primary w-full h-12 gap-2 flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
           aria-busy={loading}
         >
           {loading ? (
@@ -204,11 +193,11 @@ export default function TwoFactorPage() {
           ) : (
             <>Verify <ArrowRight className="w-4 h-4" /></>
           )}
-        </motion.button>
+        </button>
       </form>
 
       {/* Backup code toggle */}
-      <div className="mt-6 text-center space-y-3">
+      <div className="mt-6 text-center">
         <button
           type="button"
           onClick={() => {
@@ -217,21 +206,13 @@ export default function TwoFactorPage() {
             setBackupCode('');
           }}
           className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-white transition-colors"
-          aria-label={useBackup ? 'Use authenticator app instead' : 'Use a backup code instead'}
+          aria-label={
+            useBackup ? 'Use authenticator app instead' : 'Use a backup code instead'
+          }
         >
           <KeyRound className="w-3.5 h-3.5" aria-hidden="true" />
           {useBackup ? 'Use authenticator app instead' : 'Use a backup code instead'}
         </button>
-
-        <div>
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="text-sm text-text-muted hover:text-text-secondary transition-colors"
-          >
-            Cancel — back to login
-          </button>
-        </div>
       </div>
     </motion.div>
   );

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
+import { supabase } from '@/lib/supabase';
 
 const normalizeApiUrl = (url: string) => {
   const trimmed = url.replace(/\/+$/, '');
@@ -7,8 +7,7 @@ const normalizeApiUrl = (url: string) => {
 };
 
 const API_URL = normalizeApiUrl(
-  process.env.NEXT_PUBLIC_API_URL ||
-    'https://api.vopayx.qzz.io/api'
+  process.env.NEXT_PUBLIC_API_URL || 'https://api.vopayx.qzz.io/api'
 );
 
 export const apiClient = axios.create({
@@ -21,16 +20,18 @@ export const apiClient = axios.create({
 
 // ── Request interceptor ───────────────────────────────────────────────────────
 apiClient.interceptors.request.use(
-  (config) => {
-    // Authorization
-    const token = Cookies.get('accessToken');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config) => {
+    // Attach the Supabase access token from the active session
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session?.access_token && config.headers) {
+      config.headers.Authorization = `Bearer ${session.access_token}`;
     }
 
     // X-Profile-ID — read lazily to avoid circular import at module load time
     try {
-      // Dynamic import of the store so this file is not a hard dep on zustand at load time
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { useProfileStore } = require('@/stores/profileStore');
       const activeProfile = useProfileStore.getState().activeProfile;
@@ -59,21 +60,19 @@ apiClient.interceptors.request.use(
 );
 
 // ── Response interceptor ──────────────────────────────────────────────────────
-// Track whether we're already in the middle of a refresh to prevent loops
+// Supabase handles token refresh automatically via the SDK.
+// On 401, we trigger a manual session refresh and retry once.
 let isRefreshing = false;
 type FailedQueueItem = {
-  resolve: (value: string) => void;
+  resolve: (value: void) => void;
   reject: (reason: unknown) => void;
 };
 let failedQueue: FailedQueueItem[] = [];
 
-const processQueue = (error: unknown, token: string | null) => {
+const processQueue = (error: unknown) => {
   failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token as string);
-    }
+    if (error) prom.reject(error);
+    else prom.resolve();
   });
   failedQueue = [];
 };
@@ -89,11 +88,15 @@ apiClient.interceptors.response.use(
 
     // If a refresh is already in flight, queue this request
     if (isRefreshing) {
-      return new Promise<string>((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       })
-        .then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+        .then(async () => {
+          // Re-read the session after refresh completes
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            originalRequest.headers.Authorization = `Bearer ${session.access_token}`;
+          }
           return apiClient(originalRequest);
         })
         .catch((err) => Promise.reject(err));
@@ -103,44 +106,21 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const { data } = await axios.post(
-        `${API_URL}/auth/refresh`,
-        {},
-        { withCredentials: true }
-      );
+      const { data, error: refreshError } = await supabase.auth.refreshSession();
 
-      if (data.success && data.data?.tokens?.accessToken) {
-        const { accessToken, expiresIn } = data.data.tokens;
-
-        Cookies.set('accessToken', accessToken, {
-          expires: expiresIn / 86400,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-        });
-
-        // Update authStore if available
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const { useAuthStore } = require('@/stores/authStore');
-          const store = useAuthStore.getState();
-          if (store.user) {
-            store.setAuth(store.user, accessToken);
-          }
-        } catch {
-          // ok if store not ready
-        }
-
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        processQueue(null, accessToken);
-        return apiClient(originalRequest);
+      if (refreshError || !data.session) {
+        throw refreshError ?? new Error('Session refresh failed');
       }
 
-      throw new Error('Refresh token response invalid');
+      originalRequest.headers.Authorization = `Bearer ${data.session.access_token}`;
+      processQueue(null);
+      return apiClient(originalRequest);
     } catch (refreshError) {
-      processQueue(refreshError, null);
+      processQueue(refreshError);
 
-      // Second 401 — clear auth and redirect to login
-      Cookies.remove('accessToken');
+      // Clear auth state and redirect to login
+      await supabase.auth.signOut();
+
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { useAuthStore } = require('@/stores/authStore');

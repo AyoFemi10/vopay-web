@@ -82,18 +82,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     switchProfileLocal(profileId);
     setDropdownOpen(false);
     try {
-      const res = await apiClient.patch(`/profiles/${profileId}/switch`);
-      if (res.data?.data?.accessToken) {
-        const { default: Cookies } = await import('js-cookie');
-        const { useAuthStore: store } = await import('@/stores/authStore');
-        const authStore = store.getState();
-        Cookies.set('accessToken', res.data.data.accessToken, {
-          expires: (res.data.data.expiresIn ?? 86400) / 86400,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-        });
-        if (authStore.user) authStore.setAuth(authStore.user, res.data.data.accessToken);
-      }
+      // Persist the profileId in Supabase app_metadata
+      await apiClient.patch(`/profiles/${profileId}/switch`);
+      // Refresh the session so the new JWT includes the updated profileId claim
+      const { createBrowserClient } = await import('@supabase/ssr');
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      await supabase.auth.refreshSession();
     } catch {}
   };
 
